@@ -10,7 +10,10 @@ const getRandomMovieOrTvSerie = async () => {
 
     const randomNumber = (Math.random() * totalNumberOfResults).toFixed(0)
 
-    return allResults[randomNumber]
+    const recommendation = allResults[randomNumber]
+    const type = recommendation.title ? "Filme" : "Série"
+
+    return { type, recommendation }
 }
 
 module.exports = {

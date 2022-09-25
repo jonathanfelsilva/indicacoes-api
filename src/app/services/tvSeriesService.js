@@ -95,7 +95,16 @@ const _findTvSeries = async (language) => {
         const response = await axios.get(`${completePath}&page=${page}`)
         const returnedTvSeries = response.data.results
 
-        tvSeries = tvSeries.concat(returnedTvSeries)
+        const validTvSeries = []
+        
+        // Only consider tv series with an image. It's a way to see if it's worth it showing them.
+        for (let i = 0; i < returnedTvSeries.length; i++) {
+            if(returnedTvSeries[i].poster_path) {
+                validTvSeries.push(returnedTvSeries[i])
+            }
+        }
+
+        tvSeries = tvSeries.concat(validTvSeries)
         
         page++
     }

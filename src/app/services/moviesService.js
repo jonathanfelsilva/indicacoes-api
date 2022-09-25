@@ -52,7 +52,16 @@ const _getMovies = async (language) => {
         const response = await axios.get(`${completePath}&page=${page}`)
         const returnedMovies = response.data.results
 
-        movies = movies.concat(returnedMovies)
+        const validMovies = []
+        
+        // Only consider movies with an image. It's a way to see if it's worth it showing them.
+        for (let i = 0; i < returnedMovies.length; i++) {
+            if(returnedMovies[i].poster_path) {
+                validMovies.push(returnedMovies[i])
+            }
+        }
+
+        movies = movies.concat(validMovies)
         
         page++
     }
