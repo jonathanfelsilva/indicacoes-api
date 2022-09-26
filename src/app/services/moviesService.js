@@ -5,10 +5,16 @@ const moviesGenresRepository = require('../repositories/moviesGenresRepository')
 
 const { MOVIE_DB_URL, MOVIE_DB_API_KEY } = process.env
 
-const getGenres = async () => {
+const findGenres = async () => {
     const genres = await moviesGenresRepository.find();
     const genresNames = genres.map((genre) => genre?.name)
     return genresNames
+}
+
+const findGenresByIds = async (ids) => {
+    const genres = await moviesGenresRepository.find({id: {$in: ids}});
+    const genresNames = genres.map((genre) => genre.name);
+    return genresNames.join(', ')
 }
 
 const findRecomendationByGenre = async (genreName) => {
@@ -18,7 +24,12 @@ const findRecomendationByGenre = async (genreName) => {
     const totalNumberOfResults = movies.length
     const randomNumber = (Math.random() * totalNumberOfResults).toFixed(0)
 
-    return movies[randomNumber]
+    const recommendation = movies[randomNumber]
+
+    const genres = await findGenresByIds(recommendation.genre_ids)
+    recommendation.genres = genres
+
+    return recommendation
 }
 
 const updateMoviesDatabase = async (language) => {
@@ -26,13 +37,13 @@ const updateMoviesDatabase = async (language) => {
     await moviesRepository.removeAll()
     await moviesRepository.insert(movies)
 
-    const moviesGenres = await _findMoviesGenres(language)
+    const moviesGenres = await _getMoviesGenres(language)
     await moviesGenresRepository.removeAll()
     await moviesGenresRepository.insert(moviesGenres)
 }
 
 
-const _findMoviesGenres = async (language) => {
+const _getMoviesGenres = async (language) => {
     const path = '/genre/movie/list'
     const completePath = `${MOVIE_DB_URL}${path}?api_key=${MOVIE_DB_API_KEY}&language=${language}`
     const response = await axios.get(completePath)
@@ -70,7 +81,8 @@ const _getMovies = async (language) => {
 }
 
 module.exports = {
-    getGenres,
+    findGenres,
     updateMoviesDatabase,
-    findRecomendationByGenre
+    findRecomendationByGenre,
+    findGenresByIds
 }

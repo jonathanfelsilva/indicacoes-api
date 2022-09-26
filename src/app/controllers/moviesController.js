@@ -3,7 +3,7 @@ const apiResponses = require('../utils/apiResponses')
 
 const getGenres = async (req, res, next) => {
     try {
-        const genres = await moviesService.getGenres()
+        const genres = await moviesService.findGenres()
         const response = apiResponses.getResponse(genres)
 
         return res.status(200).send(response)

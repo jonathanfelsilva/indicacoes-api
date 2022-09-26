@@ -5,10 +5,16 @@ const tvSeriesGenresRepository = require('../repositories/tvSeriesGenresReposito
 
 const { MOVIE_DB_URL, MOVIE_DB_API_KEY } = process.env
 
-const getGenres = async () => {
+const findGenres = async () => {
     const genres = await tvSeriesGenresRepository.find();
     const genresNames = genres.map((genre) => genre.name)
     return genresNames
+}
+
+const findGenresByIds = async (ids) => {
+    const genres = await tvSeriesGenresRepository.find({id: {$in: ids}});
+    const genresNames = genres.map((genre) => genre.name);
+    return genresNames.join(', ')
 }
 
 const findRecomendationByGenre = async (genreName) => {
@@ -18,20 +24,25 @@ const findRecomendationByGenre = async (genreName) => {
     const totalNumberOfResults = tvSeries.length
     const randomNumber = (Math.random() * totalNumberOfResults).toFixed(0)
 
-    return tvSeries[randomNumber]
+    const recommendation = tvSeries[randomNumber]
+
+    const genres = await findGenresByIds(recommendation.genre_ids)
+    recommendation.genres = genres
+
+    return recommendation
 }
 
 const updateTvSeriesDatabase = async (language) => {
-    const tvSeries = await _findTvSeries(language)
+    const tvSeries = await _getTvSeries(language)
     await tvSeriesRepository.removeAll()
     await tvSeriesRepository.insert(tvSeries)
 
-    const genres = await _findTvSeriesGenres(language)
+    const genres = await _getTvSeriesGenres(language)
     await tvSeriesGenresRepository.removeAll()
     await tvSeriesGenresRepository.insert(genres)
 }
 
-const _findTvSeriesGenres = async (language) => {
+const _getTvSeriesGenres = async (language) => {
     const path = '/genre/tv/list'
     const completePath = `${MOVIE_DB_URL}${path}?api_key=${MOVIE_DB_API_KEY}&language=${language}`
     const response = await axios.get(completePath)
@@ -83,7 +94,7 @@ const _translateTvSeriesGenres = (genres) => {
     return genres
 }
 
-const _findTvSeries = async (language) => {
+const _getTvSeries = async (language) => {
     const path = '/tv/top_rated'
     const completePath = `${MOVIE_DB_URL}${path}?api_key=${MOVIE_DB_API_KEY}&language=${language}`
 
@@ -114,7 +125,8 @@ const _findTvSeries = async (language) => {
 
 
 module.exports = {
-    getGenres,
+    findGenres,
     updateTvSeriesDatabase,
-    findRecomendationByGenre
+    findRecomendationByGenre,
+    findGenresByIds
 }
