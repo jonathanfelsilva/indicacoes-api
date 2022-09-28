@@ -29,6 +29,9 @@ const findRecomendationByGenre = async (genreName) => {
     const genres = await findGenresByIds(recommendation.genre_ids)
     recommendation.genres = genres
 
+    const placesToWatch = await _getListWhereToWatch(recommendation.id)
+    recommendation.placesToWatch = placesToWatch
+
     return recommendation
 }
 
@@ -40,6 +43,15 @@ const updateMoviesDatabase = async (language) => {
     const moviesGenres = await _getMoviesGenres(language)
     await moviesGenresRepository.removeAll()
     await moviesGenresRepository.insert(moviesGenres)
+}
+
+const _getListWhereToWatch = async (movieId) => {
+    const path = `/movie/${movieId}/watch/providers`
+    const completePath = `${MOVIE_DB_URL}${path}?api_key=${MOVIE_DB_API_KEY}`
+    const response = await axios.get(completePath)
+
+    const list = response.data.results.BR?.flatrate ? response.data.results.BR?.flatrate : response.data.results.US?.flatrate
+    return list
 }
 
 
