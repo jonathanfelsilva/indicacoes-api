@@ -1,8 +1,7 @@
 class MongoDbIndexes {
-    static criarIndexes(client) {
-        // Exemplo:
-        // client.db(process.env.NOME_BANCO_MONGODB).createIndex('dadoanimaldata', {cdsetor: 1, ano: 1, mes: 1, cbasica: 1})
-
+    static createIndexes(client) {
+        client.db(process.env.NOME_BANCO_MONGODB).createIndex('movies', {genre_ids: 1})
+        client.db(process.env.NOME_BANCO_MONGODB).createIndex('tvseries', {genre_ids: 1})
     }
 }
 

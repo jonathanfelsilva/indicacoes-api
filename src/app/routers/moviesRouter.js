@@ -7,5 +7,6 @@ const moviesRouter = new express.Router()
 
 moviesRouter.get('/movies/genres', moviesController.getGenres, apiErrorHandlerMiddleware)
 moviesRouter.get('/movies/recommendation', moviesController.getRecommendationByGenre, apiErrorHandlerMiddleware)
+moviesRouter.get('/movies/top-three', moviesController.getDailyTopThree, apiErrorHandlerMiddleware)
 
 module.exports = moviesRouter

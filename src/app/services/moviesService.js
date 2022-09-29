@@ -45,6 +45,25 @@ const updateMoviesDatabase = async (language) => {
     await moviesGenresRepository.insert(moviesGenres)
 }
 
+const getDailyTopThree = async (language) => {
+    const path = `/movie/popular`
+    const completePath = `${MOVIE_DB_URL}${path}?api_key=${MOVIE_DB_API_KEY}&language=${language}`
+    const response = await axios.get(completePath)
+
+    const list = response.data.results
+    const topThree = [list[0], list[1], list[2]]
+
+    for (let i = 0; i < topThree.length; i++) {
+        const genres = await findGenresByIds(topThree[i].genre_ids)
+        topThree[i].genres = genres
+
+        const placesToWatch = await _getListWhereToWatch(topThree[i].id)
+        topThree[i].placesToWatch = placesToWatch
+    }
+
+    return topThree
+}
+
 const _getListWhereToWatch = async (movieId) => {
     const path = `/movie/${movieId}/watch/providers`
     const completePath = `${MOVIE_DB_URL}${path}?api_key=${MOVIE_DB_API_KEY}`
@@ -96,5 +115,6 @@ module.exports = {
     findGenres,
     updateMoviesDatabase,
     findRecomendationByGenre,
-    findGenresByIds
+    findGenresByIds,
+    getDailyTopThree
 }

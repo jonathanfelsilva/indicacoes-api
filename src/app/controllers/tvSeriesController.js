@@ -24,7 +24,19 @@ const getRecommendationByGenre = async (req, res, next) => {
     } 
 }
 
+const getDailyTopThree = async (req, res, next) => {
+    try {
+        const topThree = await seriesService.getDailyTopThree('pt-BR')
+        const response = apiResponses.getResponse(topThree)
+
+        return res.status(200).send(response)
+    } catch (error) {
+        next(error)
+    } 
+}
+
 module.exports = {
     getGenres,
-    getRecommendationByGenre
+    getRecommendationByGenre,
+    getDailyTopThree
 }
