@@ -5,6 +5,19 @@ const tvSeriesGenresRepository = require('../repositories/tvSeriesGenresReposito
 
 const { MOVIE_DB_URL, MOVIE_DB_API_KEY } = process.env
 
+const findById = async (id) => {
+    const result = await tvSeriesRepository.find({id: parseInt(id)})
+    const tvSeries = result[0]
+
+    const genres = await findGenresByIds(tvSeries.genre_ids)
+    tvSeries.genres = genres
+
+    const placesToWatch = await _getListWhereToWatch(id)
+    tvSeries.placesToWatch = placesToWatch
+    
+    return tvSeries
+}
+
 const findGenres = async () => {
     const genres = await tvSeriesGenresRepository.find();
     const genresNames = genres.map((genre) => genre.name)
@@ -19,7 +32,7 @@ const findGenresByIds = async (ids) => {
 
 const findRecomendationByGenre = async (genreName) => {
     const genre = await tvSeriesGenresRepository.find({name: genreName})
-    const tvSeries = await tvSeriesRepository.find({genre_ids: genre[0]?.id})
+    const tvSeries = await tvSeriesRepository.find({genre_ids: genre[0]?.id, vote_average: {$gte: 7.5}})
     
     const totalNumberOfResults = tvSeries.length
     const randomNumber = (Math.random() * totalNumberOfResults).toFixed(0)
@@ -51,17 +64,27 @@ const getDailyTopThree = async (language) => {
     const response = await axios.get(completePath)
 
     const list = response.data.results
+
     const topThree = [list[0], list[1], list[2]]
 
     for (let i = 0; i < topThree.length; i++) {
         const genres = await findGenresByIds(topThree[i].genre_ids)
         topThree[i].genres = genres
-
-        const placesToWatch = await _getListWhereToWatch(topThree[i].id)
-        topThree[i].placesToWatch = placesToWatch
     }
 
     return topThree
+}
+
+const findTvSeriesByName = async (name) => {
+    const filter = name ? {name: {$regex: new RegExp(name, 'i')}} : {}
+    const tvSeries = await tvSeriesRepository.find(filter)
+
+    for (let i = 0; i < tvSeries.length; i++) {
+        const genres = await findGenresByIds(tvSeries[i].genre_ids)
+        tvSeries[i].genres = genres
+    }
+
+    return tvSeries
 }
 
 const _getListWhereToWatch = async (tvSeriesId) => {
@@ -69,7 +92,14 @@ const _getListWhereToWatch = async (tvSeriesId) => {
     const completePath = `${MOVIE_DB_URL}${path}?api_key=${MOVIE_DB_API_KEY}`
     const response = await axios.get(completePath)
 
-    const list = response.data.results.BR?.flatrate ? response.data.results.BR?.flatrate : response.data.results.US?.flatrate
+    const list = 
+    response.data.results.BR?.flatrate ||
+    response.data.results.US?.flatrate ||
+    response.data.results.BR?.rent ||
+    response.data.results.US?.rent ||
+    response.data.results.BR?.buy ||
+    response.data.results.US?.buy
+
     return list
 }
 
@@ -133,7 +163,7 @@ const _getTvSeries = async (language) => {
 
     let page = 1
 
-    while (tvSeries.length < 600) {
+    while (page <= 130) {
         const response = await axios.get(`${completePath}&page=${page}`)
         const returnedTvSeries = response.data.results
 
@@ -147,6 +177,8 @@ const _getTvSeries = async (language) => {
         }
 
         tvSeries = tvSeries.concat(validTvSeries)
+
+        console.log(`Buscando séries. Página atual: ${page}`)
         
         page++
     }
@@ -156,9 +188,11 @@ const _getTvSeries = async (language) => {
 
 
 module.exports = {
+    findById,
     findGenres,
     updateTvSeriesDatabase,
     findRecomendationByGenre,
     findGenresByIds,
-    getDailyTopThree
+    getDailyTopThree,
+    findTvSeriesByName
 }

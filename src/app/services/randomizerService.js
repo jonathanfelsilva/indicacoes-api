@@ -9,8 +9,8 @@ const axios = require('axios')
 const { MOVIE_DB_URL, MOVIE_DB_API_KEY } = process.env
 
 const getRandomMovieOrTvSerie = async () => {
-    const movies = await moviesRepository.find()
-    const tvSeries = await tvSeriesRepository.find()
+    const movies = await moviesRepository.find({vote_average: {$gte: 7.5}})
+    const tvSeries = await tvSeriesRepository.find({vote_average: {$gte: 7.5}})
 
     const allResults = movies.concat(tvSeries)
     const totalNumberOfResults = allResults.length
