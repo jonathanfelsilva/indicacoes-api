@@ -127,7 +127,7 @@ const _getMovies = async (language) => {
 
     let page = 1
 
-    while (page <= 130) {
+    while (page <= 300) {
         const response = await axios.get(`${completePath}&page=${page}`)
         const returnedMovies = response.data.results
 
