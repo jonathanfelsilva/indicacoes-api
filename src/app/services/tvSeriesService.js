@@ -32,7 +32,7 @@ const findGenresByIds = async (ids) => {
 
 const findRecomendationByGenre = async (genreName) => {
     const genre = await tvSeriesGenresRepository.find({name: genreName})
-    const tvSeries = await tvSeriesRepository.find({genre_ids: genre[0]?.id, vote_average: {$gte: 7.5}})
+    const tvSeries = await tvSeriesRepository.find({genre_ids: genre[0]?.id, vote_average: {$gte: 8.5}})
     
     const totalNumberOfResults = tvSeries.length
     const randomNumber = (Math.random() * totalNumberOfResults).toFixed(0)
